@@ -253,22 +253,31 @@
   .mapview{position:absolute;inset:0;z-index:6;display:none;background:var(--screen-0)}
   .mapview.open{display:block}
   .mapview .map{position:absolute;inset:0;z-index:1;background:#0b0d1c}
-  .mapview .topbar{position:absolute;top:0;left:0;right:0;z-index:1100;padding:106px 16px 26px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  .mapview .topbar{position:absolute;top:0;left:0;right:0;z-index:1100;padding:106px 16px 26px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
     background:linear-gradient(180deg,rgba(4,5,15,.85),transparent);pointer-events:none}
   .mapview .topbar>*{pointer-events:auto}
-  .mapview .topbar .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
-  .mapview .topbar .t small{font-weight:600;color:var(--txt-dim);font-size:11px}
+  .mapview .topbar .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto}
+  .mapview .topbar .t small{font-weight:600;color:var(--txt-dim);font-size:11px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mapview .topbar .acts{display:flex;gap:8px;flex:0 0 auto}
   .mapview .icobtn{width:44px;height:44px;border-radius:13px;border:1px solid var(--stroke);background:var(--glass-strong);color:var(--txt);display:grid;place-items:center;cursor:pointer;font-size:16px;backdrop-filter:blur(16px)}
   .mapview .icobtn:hover{border-color:var(--accent)}
-  .mapview .timeline{position:absolute;left:0;right:0;bottom:0;z-index:1100;padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:11px;
+  .mapview .timeline{position:absolute;left:0;right:0;bottom:0;z-index:1100;padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px;
     background:linear-gradient(0deg,rgba(4,5,15,.92),transparent)}
   html[data-theme="light"] .mapview .timeline{background:linear-gradient(0deg,rgba(255,255,255,.92),transparent)}
   .mapview .tl-row{display:flex;align-items:center;gap:12px}
-  .mapview .play{width:44px;height:44px;flex:0 0 auto;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:17px;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 26px -12px var(--accent)}
+  .mapview .play{width:48px;height:48px;flex:0 0 auto;border-radius:15px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:17px;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 26px -12px var(--accent);transition:transform .16s ease,opacity .2s ease}
+  .mapview .play:active{transform:scale(.92)}
+  .mapview .play:disabled{opacity:.45;cursor:progress;box-shadow:none}
   .mapview .tl-meta{flex:1;min-width:0}
-  .mapview .tl-meta .row1{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700}
+  .mapview .tl-meta .row1{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:700;margin-bottom:4px}
   .mapview .tl-meta .row1 .now{color:var(--accent-2)}
-  .mapview input[type=range]{width:100%;margin-top:8px;accent-color:var(--accent);height:4px}
+  .mapview .tl-meta .row1 .past{color:var(--txt-dim)}
+  .mapview .tl-meta .row1 .clock{color:var(--txt-faint);font-variant-numeric:tabular-nums}
+  .mapview input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0;cursor:pointer}
+  .mapview input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:var(--stroke)}
+  .mapview input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.45)}
+  .mapview input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:var(--stroke)}
+  .mapview input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.45)}
   .mapview .legend{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--txt-dim);font-weight:600}
   .mapview .legend .scale{flex:1;height:7px;border-radius:6px;background:linear-gradient(90deg,#41d8ff,#4ade80,#fbbf24,#fb7185,#e879f9)}
   .mapview .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.45);color:#cbd5e1}
@@ -419,7 +428,7 @@
         <div class="map" id="map"></div>
         <div class="topbar">
           <span class="t">🛰️ Radar Hujan <small id="map-city">—</small></span>
-          <span style="display:flex;gap:8px">
+          <span class="acts">
             <button class="icobtn" id="map-recenter" title="Pusatkan ke kota" aria-label="Pusatkan ke kota">🎯</button>
             <button class="icobtn" id="map-close" title="Tutup peta" aria-label="Tutup peta">✕</button>
           </span>
@@ -428,7 +437,7 @@
           <div class="tl-row">
             <button class="play" id="map-play" title="Putar animasi" aria-label="Putar animasi">▶</button>
             <div class="tl-meta">
-              <div class="row1"><span id="tl-label">Menyiapkan radar…</span><span id="tl-mode"></span></div>
+              <div class="row1"><span id="tl-label">Menyiapkan radar…</span><span id="tl-clock"></span><span id="tl-mode"></span></div>
               <input id="tl-range" type="range" min="0" max="0" value="0" step="1" aria-label="Garis waktu radar">
             </div>
           </div>
@@ -475,7 +484,7 @@
     unitC:$('#unit-c'), unitF:$('#unit-f'),
     tabWeather:$('#tab-weather'), tabRadar:$('#tab-radar'), controls:$('#controls'),
     mapview:$('#mapview'), map:$('#map'), mapCity:$('#map-city'), mapClose:$('#map-close'), mapRecenter:$('#map-recenter'),
-    mapPlay:$('#map-play'), tlRange:$('#tl-range'), tlLabel:$('#tl-label'), tlMode:$('#tl-mode'),
+    mapPlay:$('#map-play'), tlRange:$('#tl-range'), tlLabel:$('#tl-label'), tlMode:$('#tl-mode'), tlClock:$('#tl-clock'),
     offline:$('#offline')
   };
 
@@ -1108,16 +1117,22 @@
     }
     function setView(c,zoom){ if(!map) return; map.setView([c.lat,c.lon],zoom||6); if(marker) marker.setLatLng([c.lat,c.lon]); }
     async function loadFrames(){
+      els.mapPlay.disabled=true;
+      els.tlLabel.textContent='Memuat radar…';
+      els.tlClock.textContent='';
       try{
         const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');
         host=j.host; frames=(j.radar&&j.radar.past)||[];
         if(!frames.length) throw new Error('no frames');
         idx=frames.length-1;
         els.tlRange.max=frames.length-1; els.tlRange.value=idx;
+        els.tlRange.setAttribute('aria-valuetext','sekarang');
         els.tlMode.textContent=frames.length+' bingkai';
         showFrame(idx);
-      }catch(e){ els.tlLabel.textContent='Radar tidak tersedia'; els.tlMode.textContent=''; }
+      }catch(e){ els.tlLabel.textContent='Radar tidak tersedia'; els.tlClock.textContent=''; els.tlMode.textContent=''; }
+      finally{ els.mapPlay.disabled=false; }
     }
+    function fmtClock(t){ const d=new Date(t*1000); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
     function showFrame(i){
       if(!map||!frames.length) return;
       idx=Math.max(0,Math.min(frames.length-1,i));
@@ -1127,7 +1142,11 @@
       els.tlRange.value=idx;
       const newest=frames[frames.length-1].time;
       const mins=Math.round((f.time-newest)/60);
-      els.tlLabel.innerHTML = mins>=0? '<span class="now">Sekarang</span>' : (mins+' menit lalu');
+      const rel = mins>=0 ? '<span class="now">Sekarang</span>'
+                         : '<span class="past">'+Math.abs(mins)+' menit lalu</span>';
+      els.tlLabel.innerHTML=rel;
+      els.tlClock.textContent=fmtClock(f.time);
+      els.tlRange.setAttribute('aria-valuetext', mins>=0? 'sekarang' : Math.abs(mins)+' menit lalu');
     }
     function play(){ playing=true; els.mapPlay.textContent='❚❚'; timer=setInterval(()=>{ showFrame(idx+1>=frames.length?0:idx+1); },600); }
     function stop(){ playing=false; els.mapPlay.textContent='▶'; clearInterval(timer); }
@@ -1136,7 +1155,9 @@
       els.mapview.classList.add('open'); els.controls.hidden=true;
       els.tabRadar.classList.add('on'); els.tabWeather.classList.remove('on');
       els.tabRadar.setAttribute('aria-selected','true'); els.tabWeather.setAttribute('aria-selected','false');
+      els.mapCity.textContent=state.city.name;
       setView(state.city,6);
+      if(!frames.length){ els.tlLabel.textContent='Memuat radar…'; els.tlClock.textContent=''; }
       setTimeout(()=>{ map.invalidateSize(); if(!frames.length) loadFrames(); },80);
     }
     function close(){
