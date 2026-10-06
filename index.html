@@ -2,65 +2,50 @@
 <html lang="id" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="description" content="UI-aplikasi - cuaca langsung, jam, dan efek atmosfer oleh Antono4">
+<meta name="description" content="Alam Semesta — cuaca langsung, radar hujan, kualitas udara, dan efek atmosfer oleh Antono4">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#070711">
-<title>Alam Semesta · Live Weather &amp; Ambience</title>
+<meta name="theme-color" content="#05060f">
+<meta name="color-scheme" content="dark light">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alam Semesta">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<title>Alam Semesta · Cuaca Langsung, Radar &amp; Ambience</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://api.open-meteo.com">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
   :root{
-    --bg-0:#05060f;
-    --bg-1:#0c1030;
-    --screen-0:#0b0d1c;
-    --screen-1:#121631;
-    --glass:rgba(255,255,255,.055);
-    --glass-strong:rgba(255,255,255,.1);
-    --stroke:rgba(255,255,255,.13);
-    --stroke-soft:rgba(255,255,255,.07);
-    --txt:#eef0ff;
-    --txt-dim:rgba(238,240,255,.6);
-    --txt-faint:rgba(238,240,255,.38);
-    --accent:#8b6bff;
-    --accent-2:#ff5fa2;
-    --accent-3:#41d8ff;
-    --good:#4ade80;
-    --shadow:0 40px 90px -30px rgba(0,0,0,.85);
-    --blur:22px;
+    --bg-0:#05060f; --bg-1:#0c1030;
+    --screen-0:#0b0d1c; --screen-1:#121631;
+    --glass:rgba(255,255,255,.055); --glass-strong:rgba(255,255,255,.1);
+    --stroke:rgba(255,255,255,.13); --stroke-soft:rgba(255,255,255,.07);
+    --txt:#eef0ff; --txt-dim:rgba(238,240,255,.72); --txt-faint:rgba(238,240,255,.56);
+    --accent:#8b6bff; --accent-2:#ff5fa2; --accent-3:#41d8ff;
+    --good:#4ade80; --warn:#fbbf24; --bad:#fb7185;
+    --shadow:0 40px 90px -30px rgba(0,0,0,.85); --blur:22px;
   }
   html[data-theme="light"]{
-    --bg-0:#eef1fb;
-    --bg-1:#fdeef7;
-    --screen-0:#ffffff;
-    --screen-1:#f6f3ff;
-    --glass:rgba(255,255,255,.6);
-    --glass-strong:rgba(255,255,255,.82);
-    --stroke:rgba(20,20,60,.1);
-    --stroke-soft:rgba(20,20,60,.06);
-    --txt:#191a3a;
-    --txt-dim:rgba(25,26,58,.62);
-    --txt-faint:rgba(25,26,58,.42);
+    --bg-0:#eef1fb; --bg-1:#fdeef7;
+    --screen-0:#ffffff; --screen-1:#f6f3ff;
+    --glass:rgba(255,255,255,.6); --glass-strong:rgba(255,255,255,.82);
+    --stroke:rgba(20,20,60,.1); --stroke-soft:rgba(20,20,60,.06);
+    --txt:#191a3a; --txt-dim:rgba(25,26,58,.74); --txt-faint:rgba(25,26,58,.62);
     --shadow:0 40px 80px -34px rgba(80,60,160,.45);
   }
-
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
-  body{
-    font-family:'Sora','Quicksand',system-ui,sans-serif;
-    color:var(--txt);
-    background:var(--bg-0);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:100dvh;
-    padding:clamp(12px,3vw,40px);
-    overflow-x:hidden;
-    position:relative;
-    transition:background .6s ease,color .4s ease;
-  }
+  body{font-family:'Sora','Quicksand',system-ui,sans-serif;color:var(--txt);background:var(--bg-0);
+    display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:clamp(12px,3vw,40px);
+    overflow-x:hidden;position:relative;transition:background .6s ease,color .4s ease}
+  a{color:inherit}
 
-  /* ---------- Ambient background ---------- */
+  /* Ambient background */
   .aurora{position:fixed;inset:-20%;z-index:-2;overflow:hidden;filter:blur(70px);opacity:.75}
   .orb{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:drift 26s ease-in-out infinite}
   .orb.a{width:46vmax;height:46vmax;left:-8vmax;top:-10vmax;background:radial-gradient(circle at 30% 30%,var(--accent),transparent 62%)}
@@ -69,18 +54,11 @@
   @keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(4vmax,-3vmax,0) scale(1.12)}66%{transform:translate3d(-3vmax,3vmax,0) scale(.94)}}
   .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  /* ---------- Device ---------- */
-  .phone{
-    position:relative;
-    width:min(390px,calc(100vw - 24px));
-    aspect-ratio:390/844;
-    max-height:calc(100dvh - 24px);
-    border-radius:3.4rem;
-    padding:11px;
-    background:linear-gradient(160deg,#3a3f5c,#0d0f1c 40%,#1c2033 70%,#0a0b16);
+  /* Device frame */
+  .phone{position:relative;width:min(390px,calc(100vw - 24px));aspect-ratio:390/844;max-height:calc(100dvh - 24px);
+    border-radius:3.4rem;padding:11px;background:linear-gradient(160deg,#3a3f5c,#0d0f1c 40%,#1c2033 70%,#0a0b16);
     box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.09),inset 0 1px 0 rgba(255,255,255,.22);
-    animation:enter .9s cubic-bezier(.22,1,.36,1) both, levitate 8s ease-in-out 1s infinite;
-  }
+    animation:enter .9s cubic-bezier(.22,1,.36,1) both, levitate 8s ease-in-out 1s infinite}
   html[data-theme="light"] .phone{background:linear-gradient(160deg,#f7f5ff,#d9d5ef 45%,#efeaff)}
   @keyframes enter{from{opacity:0;transform:translateY(34px) scale(.94)}to{opacity:1;transform:none}}
   @keyframes levitate{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
@@ -91,24 +69,17 @@
   .side-left.b{top:29%;height:60px}
   .side-left.c{top:39%;height:60px}
 
-  .screen{
-    position:relative;
-    height:100%;
-    border-radius:2.7rem;
-    overflow:hidden;
-    background:radial-gradient(120% 80% at 50% 0%,var(--screen-1),var(--screen-0) 62%);
-    isolation:isolate;
-    transition:background .6s ease;
-  }
+  .screen{position:relative;height:100%;border-radius:2.7rem;overflow:hidden;display:flex;flex-direction:column;
+    background:radial-gradient(120% 80% at 50% 0%,var(--screen-1),var(--screen-0) 62%);isolation:isolate;transition:background .6s ease}
   #fx{position:absolute;inset:0;z-index:1;pointer-events:none}
   .scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
     background:linear-gradient(180deg,rgba(4,5,15,.55) 0%,rgba(4,5,15,.12) 22%,transparent 42%,rgba(4,5,15,.45) 100%)}
   html[data-theme="light"] .scrim{background:linear-gradient(180deg,rgba(255,255,255,.5),transparent 40%,rgba(255,255,255,.55))}
 
-  /* Dynamic island + status bar */
-  .island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:104px;height:26px;border-radius:20px;background:#04050c;z-index:6;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+  /* Status bar + dynamic island */
+  .island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:104px;height:26px;border-radius:20px;background:#04050c;z-index:9;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
   .island::after{content:"";position:absolute;right:11px;top:8px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#26314f,#05060c 70%)}
-  .statusbar{position:absolute;top:14px;left:0;right:0;z-index:5;display:flex;justify-content:space-between;padding:0 26px;font-size:12.5px;font-weight:600;letter-spacing:.3px;color:var(--txt)}
+  .statusbar{position:relative;flex:0 0 auto;z-index:8;display:flex;justify-content:space-between;align-items:center;padding:16px 26px 4px;font-size:12.5px;font-weight:600;letter-spacing:.3px;color:var(--txt)}
   .statusbar .right{display:flex;align-items:center;gap:5px}
   .bars{display:inline-flex;align-items:flex-end;gap:2px;height:11px}
   .bars i{width:2.5px;background:currentColor;border-radius:1px;display:block}
@@ -117,34 +88,38 @@
   .batt::before{content:"";position:absolute;inset:1.5px;width:64%;background:currentColor;border-radius:1px}
   .batt::after{content:"";position:absolute;right:-3.5px;top:2.5px;width:2px;height:3.5px;background:currentColor;border-radius:0 1px 1px 0}
 
+  /* Tab bar */
+  .tabs{position:relative;flex:0 0 auto;align-self:center;margin-top:6px;z-index:7;display:flex;gap:4px;padding:4px;
+    background:var(--glass-strong);border:1px solid var(--stroke);border-radius:16px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .tabs button{border:none;background:none;color:var(--txt-dim);font:inherit;font-size:12.5px;font-weight:700;padding:9px 18px;border-radius:12px;cursor:pointer;transition:.2s}
+  .tabs button.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 8px 20px -10px var(--accent)}
+
   /* Content */
-  .content{position:relative;z-index:4;height:100%;overflow-y:auto;overflow-x:hidden;
-    padding:56px 20px 108px;display:flex;flex-direction:column;gap:16px;
-    scrollbar-width:thin;scrollbar-color:var(--stroke) transparent}
+  .content{position:relative;z-index:4;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 20px 20px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--stroke) transparent}
   .content::-webkit-scrollbar{width:6px}
   .content::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:10px}
-
   .reveal{opacity:0;transform:translateY(16px);animation:rise .7s cubic-bezier(.22,1,.36,1) forwards}
   @keyframes rise{to{opacity:1;transform:none}}
 
   .brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--txt-dim)}
-  .logo{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:16px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 8px 22px -8px var(--accent);animation:spin 14s linear infinite}
+  .logo{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:16px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 8px 22px -8px var(--accent);animation:spin 14s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
+  .grow{flex:1}
 
   .hero{display:flex;flex-direction:column;gap:2px}
   .hero .date{font-size:12px;font-weight:600;letter-spacing:2.6px;text-transform:uppercase;color:var(--txt-faint)}
-  .clock{display:flex;align-items:baseline;gap:8px;font-weight:800;letter-spacing:-2px;line-height:.92;
-    font-size:clamp(52px,15vw,64px);
-    background:linear-gradient(120deg,var(--txt),var(--accent-3) 55%,var(--accent-2));
-    -webkit-background-clip:text;background-clip:text;color:transparent;
+  .clock{display:flex;align-items:baseline;gap:8px;font-weight:800;letter-spacing:-2px;line-height:.92;font-size:clamp(52px,15vw,64px);
+    background:linear-gradient(120deg,var(--txt),var(--accent-3) 55%,var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 4px 22px rgba(120,90,255,.25))}
   .clock small{font-size:20px;font-weight:600;letter-spacing:0;color:var(--txt-dim);-webkit-text-fill-color:var(--txt-dim)}
   .tzline{font-size:12.5px;color:var(--txt-dim);display:flex;align-items:center;gap:6px;margin-top:6px}
   .dot{width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good);animation:blink 2.4s infinite}
   @keyframes blink{50%{opacity:.35}}
 
-  /* Cards */
+  .seg{display:inline-flex;background:var(--glass);border:1px solid var(--stroke);border-radius:12px;padding:2px;margin-top:10px}
+  .seg button{border:none;background:none;color:var(--txt-dim);font:inherit;font-size:11.5px;font-weight:700;padding:9px 14px;border-radius:9px;cursor:pointer;transition:.2s}
+  .seg button.on{background:var(--glass-strong);color:var(--txt);box-shadow:0 4px 12px -6px rgba(0,0,0,.6)}
+
   .card{background:var(--glass);border:1px solid var(--stroke);border-radius:24px;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));padding:16px}
   .card.tight{padding:14px}
 
@@ -156,17 +131,19 @@
   .now .desc{font-size:13.5px;color:var(--txt-dim);margin-top:4px}
   .now .loc{font-size:15px;font-weight:700;display:flex;align-items:center;gap:6px}
   .now .feels{font-size:12px;color:var(--txt-faint);margin-top:2px}
-  .grow{flex:1}
+  .fav-btn{border:none;background:none;color:var(--txt-faint);font-size:20px;cursor:pointer;padding:2px 4px;border-radius:8px;transition:.2s}
+  .fav-btn:hover{color:var(--warn)}
+  .fav-btn.on{color:var(--warn);text-shadow:0 0 14px var(--warn)}
 
   .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .metric{background:var(--glass);border:1px solid var(--stroke);border-radius:18px;padding:12px 10px;text-align:center;backdrop-filter:blur(var(--blur))}
   .metric .k{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--txt-faint);font-weight:600}
-  .metric .v{font-size:17px;font-weight:700;margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px}
+  .metric .v{font-size:17px;font-weight:700;margin-top:5px}
   .metric .s{font-size:10.5px;color:var(--txt-dim);margin-top:2px}
 
   .sec-head{display:flex;align-items:center;justify-content:space-between;margin:4px 4px -4px}
-  .sec-head h2{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt-faint)}
-  .sec-head .hint{font-size:11px;color:var(--txt-faint)}
+  .sec-head h2{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt-dim)}
+  .sec-head .hint{font-size:11px;color:var(--txt-dim)}
 
   .hourly{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;scroll-snap-type:x proximity;scrollbar-width:none}
   .hourly::-webkit-scrollbar{display:none}
@@ -176,6 +153,17 @@
   .hour .i{font-size:20px;margin:7px 0 5px}
   .hour .t{font-size:13px;font-weight:700}
   .hour .p{font-size:10px;color:var(--accent-3);font-weight:600;margin-top:3px;min-height:12px}
+
+  /* Nowcast */
+  .nowcast-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .nowcast-head h3{font-size:14px;font-weight:700}
+  .nowcast-head .prob{font-size:11.5px;color:var(--accent-3);font-weight:700}
+  .nc-chart{display:flex;align-items:flex-end;gap:5px;height:66px}
+  .nc-bar{flex:1;border-radius:6px 6px 3px 3px;min-height:3px;background:var(--stroke-soft);position:relative;transition:height .4s ease}
+  .nc-bar.on{background:linear-gradient(180deg,var(--accent-3),var(--accent))}
+  .nc-bar.now{box-shadow:0 0 0 1.5px var(--accent-2)}
+  .nc-labels{display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--txt-faint);font-weight:600}
+  .nc-note{font-size:11.5px;color:var(--txt-dim);margin-top:8px;line-height:1.5}
 
   .day{display:flex;align-items:center;gap:12px;padding:10px 4px}
   .day+.day{border-top:1px solid var(--stroke-soft)}
@@ -198,17 +186,32 @@
   .air .txt h3{font-size:14px;font-weight:700}
   .air .txt p{font-size:11.5px;color:var(--txt-dim);margin-top:3px;line-height:1.45}
 
-  .sun{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .pol{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .pol .p{background:var(--glass);border:1px solid var(--stroke-soft);border-radius:14px;padding:9px 10px}
+  .pol .p .k{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--txt-faint);font-weight:600;display:flex;align-items:center;gap:5px}
+  .pol .p .k i{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--txt-faint)}
+  .pol .p .v{font-size:15px;font-weight:700;margin-top:4px}
+  .pol .p .v small{font-size:9.5px;color:var(--txt-dim);font-weight:600;margin-left:2px}
+
+  .sun{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
   .sun .item{display:flex;align-items:center;gap:9px}
   .sun .item .e{font-size:20px}
   .sun .item .t{font-size:12.5px;font-weight:600}
   .sun .item .l{font-size:10.5px;color:var(--txt-faint);text-transform:uppercase;letter-spacing:1px}
 
-  /* Search */
+  .advisories{display:flex;flex-direction:column;gap:8px}
+  .advisory{display:flex;gap:10px;align-items:flex-start;background:var(--glass);border:1px solid var(--stroke);border-left:3px solid var(--warn);border-radius:14px;padding:11px 13px}
+  .advisory.sev{border-left-color:var(--bad)}
+  .advisory.info{border-left-color:var(--accent-3)}
+  .advisory .ae{font-size:18px;line-height:1.1}
+  .advisory .at{font-size:12.5px;font-weight:700}
+  .advisory .ad{font-size:11.5px;color:var(--txt-dim);margin-top:2px;line-height:1.45}
+
+  /* Search + chips */
   .searchwrap{position:relative}
   .search{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--stroke);border-radius:18px;padding:12px 14px;backdrop-filter:blur(var(--blur))}
   .search svg{flex:0 0 auto;opacity:.6}
-  .search input{flex:1;background:none;border:none;outline:none;color:var(--txt);font:inherit;font-size:14px}
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--txt);font:inherit;font-size:14px;min-width:0}
   .search input::placeholder{color:var(--txt-faint)}
   .search button{background:none;border:none;color:var(--txt-dim);cursor:pointer;display:grid;place-items:center;padding:2px;border-radius:8px;font-size:16px}
   .search button:hover{color:var(--txt)}
@@ -219,26 +222,61 @@
   .results button .c{font-size:13.5px;font-weight:600}
   .results button .a{font-size:11px;color:var(--txt-faint)}
   .results .empty{padding:14px;font-size:12.5px;color:var(--txt-faint)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--stroke);border-radius:14px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--txt);transition:.2s}
+  .chip:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .chip .x{color:var(--txt-faint);font-size:13px;line-height:1;padding:0 1px}
+  .chip .x:hover{color:var(--bad)}
 
   /* Bottom controls */
-  .controls{position:absolute;left:0;right:0;bottom:0;z-index:7;padding:14px 20px calc(16px + env(safe-area-inset-bottom));
-    display:flex;gap:10px;justify-content:center;
+  .controls{position:relative;flex:0 0 auto;z-index:7;padding:12px 20px calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
     background:linear-gradient(180deg,transparent,rgba(4,5,15,.72) 55%)}
   html[data-theme="light"] .controls{background:linear-gradient(180deg,transparent,rgba(255,255,255,.82) 55%)}
-  .ctl{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;cursor:pointer;font-size:20px;
-    background:var(--glass-strong);border:1px solid var(--stroke);color:var(--txt);backdrop-filter:blur(20px);
-    transition:transform .16s ease,background .25s ease,border-color .25s ease;text-decoration:none}
+  .ctl{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;cursor:pointer;font-size:20px;background:var(--glass-strong);border:1px solid var(--stroke);color:var(--txt);
+    backdrop-filter:blur(20px);transition:transform .16s ease,background .25s ease,border-color .25s ease;text-decoration:none;position:relative}
   .ctl:hover{transform:translateY(-3px);border-color:var(--accent)}
   .ctl:active{transform:scale(.9)}
   .ctl.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;box-shadow:0 12px 30px -12px var(--accent)}
   .ctl.pulse{animation:pulse 3.2s ease-in-out infinite}
   @keyframes pulse{0%,100%{box-shadow:0 12px 30px -12px var(--accent)}50%{box-shadow:0 12px 40px -6px var(--accent-2)}}
   .ctl.spin-ic .ic{display:inline-block;animation:spin .8s linear infinite}
+  .ctl[hidden],.controls[hidden]{display:none}
+  @media (max-width:400px){.ctl{width:44px;height:44px;font-size:17px;border-radius:16px}.controls{gap:8px}}
 
-  .toast{position:absolute;left:50%;bottom:86px;transform:translate(-50%,14px);z-index:30;background:var(--glass-strong);
-    border:1px solid var(--stroke);color:var(--txt);font-size:12.5px;font-weight:600;padding:9px 16px;border-radius:14px;
-    backdrop-filter:blur(24px);opacity:0;pointer-events:none;transition:.35s ease;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+  .toast{position:absolute;left:50%;bottom:86px;transform:translate(-50%,14px);z-index:30;background:var(--glass-strong);border:1px solid var(--stroke);color:var(--txt);font-size:12.5px;font-weight:600;
+    padding:9px 16px;border-radius:14px;backdrop-filter:blur(24px);opacity:0;pointer-events:none;transition:.35s ease;white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
   .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* Map / radar view */
+  .mapview{position:absolute;inset:0;z-index:6;display:none;background:var(--screen-0)}
+  .mapview.open{display:block}
+  .mapview .map{position:absolute;inset:0;z-index:1;background:#0b0d1c}
+  .mapview .topbar{position:absolute;top:0;left:0;right:0;z-index:1100;padding:100px 16px 26px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:linear-gradient(180deg,rgba(4,5,15,.85),transparent);pointer-events:none}
+  .mapview .topbar>*{pointer-events:auto}
+  .mapview .topbar .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .mapview .topbar .t small{font-weight:600;color:var(--txt-dim);font-size:11px}
+  .mapview .icobtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--stroke);background:var(--glass-strong);color:var(--txt);display:grid;place-items:center;cursor:pointer;font-size:16px;backdrop-filter:blur(16px)}
+  .mapview .icobtn:hover{border-color:var(--accent)}
+  .mapview .timeline{position:absolute;left:0;right:0;bottom:0;z-index:1100;padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:11px;
+    background:linear-gradient(0deg,rgba(4,5,15,.92),transparent)}
+  html[data-theme="light"] .mapview .timeline{background:linear-gradient(0deg,rgba(255,255,255,.92),transparent)}
+  .mapview .tl-row{display:flex;align-items:center;gap:12px}
+  .mapview .play{width:44px;height:44px;flex:0 0 auto;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-size:17px;cursor:pointer;display:grid;place-items:center;box-shadow:0 10px 26px -12px var(--accent)}
+  .mapview .tl-meta{flex:1;min-width:0}
+  .mapview .tl-meta .row1{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700}
+  .mapview .tl-meta .row1 .now{color:var(--accent-2)}
+  .mapview input[type=range]{width:100%;margin-top:8px;accent-color:var(--accent);height:4px}
+  .mapview .legend{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--txt-dim);font-weight:600}
+  .mapview .legend .scale{flex:1;height:7px;border-radius:6px;background:linear-gradient(90deg,#41d8ff,#4ade80,#fbbf24,#fb7185,#e879f9)}
+  .mapview .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.45);color:#cbd5e1}
+  .mapview .leaflet-control-attribution a{color:#cbd5e1}
+  .mapview .maploc{width:12px;height:12px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(255,95,162,.35),0 0 16px var(--accent-2)}
+
+  .offline{order:-1;position:relative;flex:0 0 auto;display:none;z-index:40;background:linear-gradient(135deg,#fb7185,#e879f9);color:#fff;font-size:11.5px;font-weight:700;text-align:center;
+    padding:7px 10px;border-radius:0 0 14px 14px}
+  .offline.show{display:block;animation:drop .4s cubic-bezier(.22,1,.36,1) both}
+  @keyframes drop{from{transform:translateY(-100%);opacity:0}to{transform:none;opacity:1}}
 
   .skeleton{background:linear-gradient(90deg,var(--stroke-soft),var(--stroke),var(--stroke-soft));background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;color:transparent!important}
   @keyframes shimmer{to{background-position:-200% 0}}
@@ -246,9 +284,7 @@
   footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:12px;color:var(--txt-faint);z-index:1}
   footer a{color:var(--txt-dim);text-decoration:none;border-bottom:1px dotted var(--stroke)}
   @media (max-height:900px){footer{display:none}}
-  @media (prefers-reduced-motion:reduce){
-    *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
-  }
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style>
 </head>
 <body>
@@ -270,6 +306,11 @@
         </span>
       </div>
 
+      <div class="tabs" role="tablist" aria-label="Tampilan">
+        <button id="tab-weather" class="on" role="tab" aria-selected="true">Cuaca</button>
+        <button id="tab-radar" role="tab" aria-selected="false">Radar</button>
+      </div>
+
       <div class="content" id="content">
         <div class="brand reveal" style="animation-delay:.05s">
           <span class="logo">✦</span>
@@ -280,6 +321,10 @@
           <p class="date" id="date">—</p>
           <div class="clock"><span id="clock">00:00</span><small id="sec">:00</small></div>
           <p class="tzline"><span class="dot"></span><span id="tz">Memuat zona waktu…</span></p>
+          <div class="seg" role="group" aria-label="Satuan suhu">
+            <button id="unit-c" class="on">°C</button>
+            <button id="unit-f">°F</button>
+          </div>
         </section>
 
         <section class="card now reveal" style="animation-delay:.18s" id="now-card">
@@ -288,10 +333,11 @@
             <div class="loc" id="w-loc">Mendeteksi lokasi…</div>
             <div class="feels" id="w-feels">Menghubungkan ke satelit cuaca…</div>
           </div>
-          <div style="text-align:right">
-            <div class="temp"><span id="w-temp">--</span><sup>°C</sup></div>
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            <div class="temp"><span id="w-temp">--</span><sup id="w-unit">°C</sup></div>
             <div class="desc" id="w-desc">—</div>
           </div>
+          <button class="fav-btn" id="fav-btn" title="Simpan ke favorit" aria-label="Simpan ke favorit" aria-pressed="false">☆</button>
         </section>
 
         <section class="metrics reveal" style="animation-delay:.24s">
@@ -300,25 +346,40 @@
           <div class="metric"><div class="k">Lembap</div><div class="v" id="m-hum">--%</div><div class="s">kelembapan</div></div>
         </section>
 
-        <div class="sec-head reveal" style="animation-delay:.28s"><h2>Per Jam</h2><span class="hint">24 jam ke depan</span></div>
-        <section class="hourly reveal" style="animation-delay:.3s" id="hourly"></section>
+        <div class="sec-head reveal" style="animation-delay:.27s"><h2>Catatan Cuaca</h2><span class="hint">dari data prakiraan</span></div>
+        <div class="advisories reveal" id="advisories" style="animation-delay:.29s"></div>
 
-        <div class="sec-head reveal" style="animation-delay:.32s"><h2>7 Hari</h2><span class="hint">prakiraan harian</span></div>
-        <section class="card tight reveal" style="animation-delay:.34s" id="daily"></section>
-
-        <section class="card air reveal" style="animation-delay:.38s">
-          <div class="ring" id="aqi-ring"><div><div class="val" id="aqi-val">--</div><div class="lab">AQI</div></div></div>
-          <div class="txt"><h3 id="aqi-title">Kualitas Udara</h3><p id="aqi-desc">Memuat data polusi udara…</p></div>
+        <div class="sec-head reveal" style="animation-delay:.31s"><h2>Hujan Terdekat</h2><span class="hint">2 jam ke depan</span></div>
+        <section class="card reveal" style="animation-delay:.33s">
+          <div class="nowcast-head"><h3 id="nc-title">Sekarang</h3><span class="prob" id="nc-prob">—</span></div>
+          <div class="nc-chart" id="nc-chart"></div>
+          <div class="nc-labels"><span>0m</span><span>30m</span><span>60m</span><span>90m</span><span>120m</span></div>
+          <p class="nc-note" id="nc-note">Memuat prakiraan curah hujan…</p>
         </section>
 
-        <section class="card sun reveal" style="animation-delay:.42s">
+        <div class="sec-head reveal" style="animation-delay:.35s"><h2>Per Jam</h2><span class="hint">24 jam ke depan</span></div>
+        <section class="hourly reveal" style="animation-delay:.37s" id="hourly"></section>
+
+        <div class="sec-head reveal" style="animation-delay:.39s"><h2>7 Hari</h2><span class="hint">prakiraan harian</span></div>
+        <section class="card tight reveal" style="animation-delay:.41s" id="daily"></section>
+
+        <section class="card reveal" style="animation-delay:.45s">
+          <div class="air">
+            <div class="ring" id="aqi-ring"><div><div class="val" id="aqi-val">--</div><div class="lab">AQI</div></div></div>
+            <div class="txt"><h3 id="aqi-title">Kualitas Udara</h3><p id="aqi-desc">Memuat data polusi udara…</p></div>
+          </div>
+          <div class="pol" id="pol"></div>
+        </section>
+
+        <section class="card sun reveal" style="animation-delay:.49s">
           <div class="item"><span class="e">🌅</span><div><div class="l">Terbit</div><div class="t" id="sun-rise">--:--</div></div></div>
           <div class="item"><span class="e">🌇</span><div><div class="l">Terbenam</div><div class="t" id="sun-set">--:--</div></div></div>
           <div class="item"><span class="e">🔆</span><div><div class="l">UV</div><div class="t" id="uv">--</div></div></div>
+          <div class="item"><span class="e" id="moon-ic">🌙</span><div><div class="l">Bulan</div><div class="t" id="moon">--</div></div></div>
         </section>
 
-        <div class="sec-head reveal" style="animation-delay:.44s"><h2>Ganti Kota</h2><span class="hint">cari di seluruh dunia</span></div>
-        <section class="searchwrap reveal" style="animation-delay:.46s">
+        <div class="sec-head reveal" style="animation-delay:.51s"><h2>Ganti Kota</h2><span class="hint">cari di seluruh dunia</span></div>
+        <section class="searchwrap reveal" style="animation-delay:.53s">
           <div class="search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
             <input id="q" type="search" placeholder="Cari kota… (mis. Jakarta, Tokyo)" autocomplete="off" aria-label="Cari kota">
@@ -327,25 +388,53 @@
           <div class="results" id="results" role="listbox"></div>
         </section>
 
+        <div class="chips reveal" id="chips" style="animation-delay:.56s"></div>
+
         <p style="text-align:center;font-size:11px;color:var(--txt-faint);margin-top:6px">
-          Data cuaca langsung dari <a href="https://open-meteo.com" target="_blank" rel="noopener" style="color:var(--txt-dim)">Open-Meteo</a>
+          Cuaca &amp; polusi: <a href="https://open-meteo.com" target="_blank" rel="noopener" style="color:var(--txt-dim)">Open-Meteo</a>
+          · Radar: <a href="https://www.rainviewer.com/api.html" target="_blank" rel="noopener" style="color:var(--txt-dim)">RainViewer</a>
         </p>
       </div>
 
-      <div class="toast" id="toast"></div>
+      <section class="mapview" id="mapview" aria-label="Radar hujan">
+        <div class="map" id="map"></div>
+        <div class="topbar">
+          <span class="t">🛰️ Radar Hujan <small id="map-city">—</small></span>
+          <span style="display:flex;gap:8px">
+            <button class="icobtn" id="map-recenter" title="Pusatkan ke kota" aria-label="Pusatkan ke kota">🎯</button>
+            <button class="icobtn" id="map-close" title="Tutup peta" aria-label="Tutup peta">✕</button>
+          </span>
+        </div>
+        <div class="timeline">
+          <div class="tl-row">
+            <button class="play" id="map-play" title="Putar animasi" aria-label="Putar animasi">▶</button>
+            <div class="tl-meta">
+              <div class="row1"><span id="tl-label">Menyiapkan radar…</span><span id="tl-mode"></span></div>
+              <input id="tl-range" type="range" min="0" max="0" value="0" step="1" aria-label="Garis waktu radar">
+            </div>
+          </div>
+          <div class="legend"><span>Ringan</span><span class="scale"></span><span>Lebat</span></div>
+        </div>
+      </section>
 
-      <nav class="controls">
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <nav class="controls" id="controls">
         <button class="ctl primary pulse" id="btn-fx" title="Ganti efek suasana" aria-label="Ganti efek suasana"><span class="ic" id="fx-ic">🌧️</span></button>
         <button class="ctl" id="btn-theme" title="Ganti tema" aria-label="Ganti tema"><span class="ic" id="theme-ic">🌙</span></button>
         <button class="ctl" id="btn-refresh" title="Segarkan data" aria-label="Segarkan data"><span class="ic" id="refresh-ic">⟳</span></button>
-        <button class="ctl" id="btn-share" title="Salin tautan" aria-label="Salin tautan"><span class="ic">🔗</span></button>
+        <button class="ctl" id="btn-share" title="Bagikan tautan" aria-label="Bagikan tautan"><span class="ic">🔗</span></button>
+        <button class="ctl" id="btn-install" title="Pasang sebagai aplikasi" aria-label="Pasang sebagai aplikasi" hidden><span class="ic">📲</span></button>
         <a class="ctl" href="https://antono4.github.io/" title="Situs utama Antono" aria-label="Situs utama Antono"><span class="ic">🏠</span></a>
       </nav>
+
+      <div class="offline" id="offline" role="alert">⚠️ Tidak ada koneksi — menampilkan data terakhir yang tersimpan</div>
     </div>
   </main>
 
   <footer>Dibuat oleh <a href="https://github.com/antono4" target="_blank" rel="noopener">Antono</a> · <a href="https://github.com/antono4/UI-aplikasi" target="_blank" rel="noopener">sumber</a></footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 (function(){
   "use strict";
@@ -354,22 +443,36 @@
   const els = {
     phone:$('#phone'), content:$('#content'), fx:$('#fx'), toast:$('#toast'),
     clock:$('#clock'), sec:$('#sec'), date:$('#date'), tz:$('#tz'), sbTime:$('#sb-time'),
-    wIcon:$('#w-icon'), wLoc:$('#w-loc'), wFeels:$('#w-feels'), wTemp:$('#w-temp'), wDesc:$('#w-desc'),
+    wIcon:$('#w-icon'), wLoc:$('#w-loc'), wFeels:$('#w-feels'), wTemp:$('#w-temp'), wUnit:$('#w-unit'), wDesc:$('#w-desc'),
+    favBtn:$('#fav-btn'),
     mFeels:$('#m-feels'), mWind:$('#m-wind'), mWindS:$('#m-wind-s'), mHum:$('#m-hum'),
-    hourly:$('#hourly'), daily:$('#daily'),
-    aqiRing:$('#aqi-ring'), aqiVal:$('#aqi-val'), aqiTitle:$('#aqi-title'), aqiDesc:$('#aqi-desc'),
-    sunRise:$('#sun-rise'), sunSet:$('#sun-set'), uv:$('#uv'),
-    q:$('#q'), results:$('#results'), geo:$('#geo'),
+    hourly:$('#hourly'), daily:$('#daily'), advisories:$('#advisories'),
+    ncChart:$('#nc-chart'), ncProb:$('#nc-prob'), ncNote:$('#nc-note'), ncTitle:$('#nc-title'),
+    aqiRing:$('#aqi-ring'), aqiVal:$('#aqi-val'), aqiTitle:$('#aqi-title'), aqiDesc:$('#aqi-desc'), pol:$('#pol'),
+    sunRise:$('#sun-rise'), sunSet:$('#sun-set'), uv:$('#uv'), moon:$('#moon'), moonIc:$('#moon-ic'),
+    q:$('#q'), results:$('#results'), geo:$('#geo'), chips:$('#chips'),
     btnFx:$('#btn-fx'), fxIc:$('#fx-ic'), btnTheme:$('#btn-theme'), themeIc:$('#theme-ic'),
-    btnRefresh:$('#btn-refresh'), refreshIc:$('#refresh-ic'), btnShare:$('#btn-share')
+    btnRefresh:$('#btn-refresh'), refreshIc:$('#refresh-ic'), btnShare:$('#btn-share'), btnInstall:$('#btn-install'),
+    unitC:$('#unit-c'), unitF:$('#unit-f'),
+    tabWeather:$('#tab-weather'), tabRadar:$('#tab-radar'), controls:$('#controls'),
+    mapview:$('#mapview'), map:$('#map'), mapCity:$('#map-city'), mapClose:$('#map-close'), mapRecenter:$('#map-recenter'),
+    mapPlay:$('#map-play'), tlRange:$('#tl-range'), tlLabel:$('#tl-label'), tlMode:$('#tl-mode'),
+    offline:$('#offline')
   };
 
   const DEFAULT = { name:'Jakarta', country:'Indonesia', admin:'DKI Jakarta', lat:-6.2088, lon:106.8456, tz:'Asia/Jakarta' };
-  const LS = { city:'uia.city', theme:'uia.theme', fx:'uia.fx' };
+  const LS = { city:'uia.city', theme:'uia.theme', fx:'uia.fx', unit:'uia.unit', favs:'uia.favs', recents:'uia.recents', cache:'uia.cache' };
   const store = {
     get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
-    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+    set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+    del(k){ try{ localStorage.removeItem(k); }catch(e){} }
   };
+
+  /* ---------------- Units ---------------- */
+  function toF(c){ return c*9/5+32; }
+  const fmtTemp = (c)=> Math.round(state.unit==='f'? toF(c) : c);
+  const unitSym = ()=> state.unit==='f'? '°F':'°C';
+  const fmtWind = (kmh)=> state.unit==='f'? Math.round(kmh*0.621371)+' mph' : Math.round(kmh)+' km/j';
 
   /* ---------------- WMO weather codes ---------------- */
   const WMO = {
@@ -391,6 +494,9 @@
     city: store.get(LS.city, DEFAULT),
     theme: store.get(LS.theme, null),
     fx: store.get(LS.fx, 'auto'),
+    unit: store.get(LS.unit, 'c'),
+    favs: store.get(LS.favs, []),
+    recents: store.get(LS.recents, []),
     weather: null,
     aqi: null,
     loading:false
@@ -416,7 +522,19 @@
   els.btnTheme.addEventListener('click',()=>{
     const t = document.documentElement.getAttribute('data-theme')==='dark' ? 'light':'dark';
     state.theme=t; applyTheme(t);
+    if(radar.isOpen()) radar.refresh();
   });
+
+  /* ---------------- Units ---------------- */
+  function setUnit(u){
+    state.unit=u; store.set(LS.unit,u);
+    els.unitC.classList.toggle('on',u==='c');
+    els.unitF.classList.toggle('on',u==='f');
+    els.wUnit.textContent=unitSym();
+    renderAll();
+  }
+  els.unitC.addEventListener('click',()=>setUnit('c'));
+  els.unitF.addEventListener('click',()=>setUnit('f'));
 
   /* ---------------- Clock ---------------- */
   function tzPart(d, tz, opt){
@@ -556,7 +674,7 @@
   /* ---------------- Toast ---------------- */
   function showToast(msg){
     els.toast.textContent=msg; els.toast.classList.add('show');
-    clearTimeout(showToast._t); showToast._t=setTimeout(()=>els.toast.classList.remove('show'),2200);
+    clearTimeout(showToast._t); showToast._t=setTimeout(()=>els.toast.classList.remove('show'),2400);
   }
 
   async function getJSON(url){
@@ -565,6 +683,7 @@
     return r.json();
   }
 
+  /* ---------------- Formatting helpers ---------------- */
   function windDir(deg){
     if(deg==null) return '';
     const d=['U','TL','T','TG','S','BD','B','BL'];
@@ -585,25 +704,114 @@
     if(aqi<=100) return {c:'#fb7185',t:'Sangat buruk',d:'Batasi aktivitas luar ruangan dan gunakan masker bila perlu.'};
     return {c:'#e879f9',t:'Berbahaya',d:'Hindari aktivitas luar ruangan. Tetap di dalam ruangan bila memungkinkan.'};
   }
+  function uvInfo(uv){
+    if(uv==null) return '—';
+    if(uv<3) return 'Rendah';
+    if(uv<6) return 'Sedang';
+    if(uv<8) return 'Tinggi';
+    if(uv<11) return 'Sangat tinggi';
+    return 'Ekstrem';
+  }
+  function moonPhase(date){
+    const synodic=29.530588853, newMoon=Date.UTC(2000,0,6,18,14);
+    let days=(date.getTime()-newMoon)/86400000;
+    let ph=((days%synodic)+synodic)%synodic/synodic;
+    const idx=Math.round(ph*8)%8;
+    const N=[['Bulan Baru','🌑'],['Sabit Muda','🌒'],['Kuartal Pertama','🌓'],['Cembung Awal','🌔'],['Purnama','🌕'],['Cembung Akhir','🌖'],['Kuartal Akhir','🌗'],['Sabit Akhir','🌘']];
+    return {name:N[idx][0], icon:N[idx][1], illum:Math.round((1-Math.cos(2*Math.PI*ph))/2*100)};
+  }
+  function polInfo(v,kind){
+    if(v==null) return {c:'#94a3b8',l:'—'};
+    let c,l;
+    if(kind==='pm25'){ c=v<=10?'#4ade80':v<=25?'#fbbf24':v<=50?'#fb923c':v<=75?'#fb7185':'#e879f9'; }
+    else if(kind==='pm10'){ c=v<=20?'#4ade80':v<=40?'#fbbf24':v<=60?'#fb923c':'#fb7185'; }
+    else if(kind==='no2'){ c=v<=40?'#4ade80':v<=90?'#fbbf24':v<=150?'#fb923c':'#fb7185'; }
+    else if(kind==='o3'){ c=v<=60?'#4ade80':v<=100?'#fbbf24':v<=140?'#fb923c':'#fb7185'; }
+    else if(kind==='so2'){ c=v<=40?'#4ade80':v<=80?'#fbbf24':v<=250?'#fb923c':'#fb7185'; }
+    else { c=v<=1000?'#4ade80':v<=4000?'#fbbf24':v<=10000?'#fb923c':'#fb7185'; }
+    l = c==='#4ade80'?'Baik' : c==='#fbbf24'?'Sedang' : c==='#fb923c'?'Buruk' : c==='#fb7185'?'Sgt buruk':'Bahaya';
+    return {c,l};
+  }
 
+  /* ---------------- Advisories ---------------- */
+  function buildAdvisories(w){
+    const a=[]; const h=(w.hourly||[]).slice(0,12);
+    const heavy=h.find(x=>x.code>=95||x.code>=80);
+    if(heavy) a.push({e:'⛈️',t:'Cuaca ekstrem',d:'Potensi hujan lebat / badai petir sekitar '+fmtHour(heavy.time)+'.',sev:true});
+    const rainSoon=h.find(x=>x.pop>=55);
+    if(rainSoon && !heavy) a.push({e:'☔',t:'Kemungkinan hujan',d:'Peluang hujan '+rainSoon.pop+'% sekitar '+fmtHour(rainSoon.time)+'. Bawa payung.'});
+    if(w.uv!=null && w.uv>=8) a.push({e:'🔆',t:'UV tinggi ('+Math.round(w.uv)+')',d:'Gunakan tabir surya dan hindari paparan lama.',sev:true});
+    if(w.temp>=35) a.push({e:'🥵',t:'Panas menyengat',d:'Suhu '+fmtTemp(w.temp)+unitSym()+'. Perbanyak minum air.',sev:true});
+    if(w.temp<=10) a.push({e:'🥶',t:'Dingin',d:'Suhu '+fmtTemp(w.temp)+unitSym()+'. Kenakan pakaian hangat.'});
+    if(w.wind>=45) a.push({e:'💨',t:'Angin kencang',d:fmtWind(w.wind)+'. Berhati-hati saat berkendara.'});
+    if(state.aqi && state.aqi.aqi>=80) a.push({e:'😷',t:'Udara buruk (AQI '+Math.round(state.aqi.aqi)+')',d:'Batasi aktivitas luar dan pakai masker.',sev:true});
+    if(!a.length) a.push({e:'✅',t:'Cuaca bersahabat',d:'Tidak ada peringatan penting untuk 12 jam ke depan.',info:true});
+    return a.slice(0,3);
+  }
+  function renderAdvisories(){
+    const w=state.weather; if(!w) return;
+    els.advisories.innerHTML='';
+    buildAdvisories(w).forEach(x=>{
+      const d=document.createElement('div');
+      d.className='advisory'+(x.sev?' sev':'')+(x.info?' info':'');
+      d.innerHTML='<span class="ae">'+x.e+'</span><div><div class="at">'+x.t+'</div><div class="ad">'+x.d+'</div></div>';
+      els.advisories.appendChild(d);
+    });
+  }
+
+  /* ---------------- Nowcast (minutely_15) ---------------- */
+  function renderNowcast(){
+    const nc=state.weather&&state.weather.nowcast;
+    els.ncChart.innerHTML='';
+    if(!nc||!nc.length){ els.ncTitle.textContent='Hujan Terdekat'; els.ncProb.textContent='—'; els.ncNote.textContent='Data nowcast tidak tersedia untuk lokasi ini.'; return; }
+    const max=Math.max(0.4, ...nc.map(x=>x.mm));
+    let firstRain=-1;
+    nc.forEach((x,i)=>{
+      const bar=document.createElement('div');
+      bar.className='nc-bar'+(x.mm>0.1?' on':'')+(i===0?' now':'');
+      bar.style.height=Math.max(4, Math.round(x.mm/max*58))+'px';
+      bar.title=(i*15)+' mnt · '+x.mm.toFixed(1)+' mm · '+x.pop+'%';
+      els.ncChart.appendChild(bar);
+      if(firstRain<0 && x.mm>0.1) firstRain=i;
+    });
+    const peakPop=Math.max.apply(null, nc.map(x=>x.pop));
+    els.ncProb.textContent='peluang maks '+peakPop+'%';
+    if(firstRain<0){
+      els.ncTitle.textContent='Tidak ada hujan';
+      els.ncNote.textContent='Tidak terdeteksi hujan dalam 2 jam ke depan. Aman untuk beraktivitas.';
+    }else{
+      const mins=firstRain*15;
+      els.ncTitle.textContent = mins===0? 'Sedang hujan' : 'Hujan ±'+mins+' menit lagi';
+      els.ncNote.textContent = 'Puncak curah '+max.toFixed(1)+' mm per 15 menit · peluang hujan hingga '+peakPop+'%.';
+    }
+  }
+
+  /* ---------------- Render all ---------------- */
   function renderAll(){
     const w=state.weather; if(!w) return;
     const info=codeInfo(w.code, w.is_day===0);
 
     els.wIcon.textContent=info.icon;
     els.wLoc.textContent=w.place;
-    els.wTemp.textContent=Math.round(w.temp);
+    els.wTemp.textContent=fmtTemp(w.temp);
+    els.wUnit.textContent=unitSym();
     els.wDesc.textContent=info.text;
-    els.wFeels.textContent='Terasa '+Math.round(w.feels)+'° · Angin '+windDir(w.winddir)+' '+Math.round(w.wind)+' km/j';
+    els.wFeels.textContent='Terasa '+fmtTemp(w.feels)+unitSym()+' · Angin '+windDir(w.winddir)+' '+fmtWind(w.wind);
 
-    els.mFeels.textContent=Math.round(w.feels)+'°';
-    els.mWind.textContent=Math.round(w.wind);
-    els.mWindS.textContent='km/j · '+windDir(w.winddir);
+    els.mFeels.textContent=fmtTemp(w.feels)+unitSym();
+    els.mWind.textContent=fmtWind(w.wind);
+    els.mWindS.textContent=windDir(w.winddir)?('arah '+windDir(w.winddir)):'';
     els.mHum.textContent=Math.round(w.humidity)+'%';
+
+    renderAdvisories();
+    renderNowcast();
 
     els.sunRise.textContent=w.sunrise? fmtHour(w.sunrise) : '--:--';
     els.sunSet.textContent=w.sunset? fmtHour(w.sunset) : '--:--';
-    els.uv.textContent = w.uv==null? '--' : Math.round(w.uv);
+    els.uv.textContent = w.uv==null? '--' : Math.round(w.uv)+' · '+uvInfo(w.uv);
+    const mp=moonPhase(new Date());
+    els.moon.textContent=mp.name+' · '+mp.illum+'%';
+    els.moonIc.textContent=mp.icon;
 
     els.hourly.innerHTML='';
     (w.hourly||[]).slice(0,24).forEach((h,i)=>{
@@ -612,16 +820,17 @@
       el.className='hour'+(i===0?' now-h':'');
       el.innerHTML='<div class="h">'+(i===0?'Kini':fmtHour(h.time))+'</div>'+
         '<div class="i">'+hi.icon+'</div>'+
-        '<div class="t">'+Math.round(h.temp)+'°</div>'+
+        '<div class="t">'+fmtTemp(h.temp)+'°</div>'+
         '<div class="p">'+(h.pop>=15? h.pop+'%':'')+'</div>';
       els.hourly.appendChild(el);
     });
 
     els.daily.innerHTML='';
-    const lo=Math.min.apply(null,(w.daily||[]).map(d=>d.min));
-    const hi=Math.max.apply(null,(w.daily||[]).map(d=>d.max));
+    const list=w.daily||[];
+    const lo=Math.min.apply(null,list.map(d=>d.min));
+    const hi=Math.max.apply(null,list.map(d=>d.max));
     const span=Math.max(1,hi-lo);
-    (w.daily||[]).forEach((d,i)=>{
+    list.forEach((d,i)=>{
       const di=codeInfo(d.code,false);
       const left=((d.min-lo)/span)*100, width=Math.max(8,((d.max-d.min)/span)*100);
       const row=document.createElement('div');
@@ -629,9 +838,9 @@
       row.innerHTML='<div class="name">'+fmtDay(d.time,i)+'</div>'+
         '<div class="i">'+di.icon+'</div>'+
         '<div class="p">'+(d.pop>=15? d.pop+'%':'')+'</div>'+
-        '<div class="range"><span class="lo">'+Math.round(d.min)+'°</span>'+
+        '<div class="range"><span class="lo">'+fmtTemp(d.min)+'°</span>'+
         '<span class="bar"><span style="left:'+left+'%;width:'+width+'%"></span></span>'+
-        '<span class="hi">'+Math.round(d.max)+'°</span></div>';
+        '<span class="hi">'+fmtTemp(d.max)+'°</span></div>';
       els.daily.appendChild(row);
     });
 
@@ -644,10 +853,35 @@
       els.aqiRing.style.background='conic-gradient('+ai.c+' '+pct+'%, var(--stroke-soft) '+pct+'%)';
       els.aqiRing.style.boxShadow='0 0 26px -8px '+ai.c;
     }
+    renderPol();
 
     fx.set(state.fx);
+    renderFav();
   }
 
+  function renderPol(){
+    const a=state.aqi;
+    const rows=[
+      ['pm25','PM2.5', a&&a.pm25, 'µg/m³'],
+      ['pm10','PM10', a&&a.pm10, 'µg/m³'],
+      ['no2','NO₂', a&&a.no2, 'µg/m³'],
+      ['o3','O₃', a&&a.o3, 'µg/m³'],
+      ['so2','SO₂', a&&a.so2, 'µg/m³'],
+      ['co','CO', a&&a.co, 'µg/m³']
+    ];
+    els.pol.innerHTML='';
+    rows.forEach(([kind,label,val,unit])=>{
+      const pi=polInfo(val,kind);
+      const d=document.createElement('div');
+      d.className='p';
+      d.innerHTML='<div class="k"><i style="background:'+pi.c+'"></i>'+label+'</div>'+
+        '<div class="v">'+(val==null?'--':Math.round(val))+'<small>'+unit+'</small></div>'+
+        '<div class="s" style="font-size:10px;color:'+pi.c+';font-weight:700;margin-top:1px">'+pi.l+'</div>';
+      els.pol.appendChild(d);
+    });
+  }
+
+  /* ---------------- Weather loading ---------------- */
   async function loadWeather(city, opts){
     opts=opts||{};
     if(state.loading) return;
@@ -657,16 +891,18 @@
     const tz=city.tz||'auto';
     const base='latitude='+city.lat+'&longitude='+city.lon+'&timezone='+encodeURIComponent(tz);
     const fUrl='https://api.open-meteo.com/v1/forecast?'+base+
-      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m'+
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl,cloud_cover'+
       '&hourly=temperature_2m,weather_code,precipitation_probability,is_day'+
+      '&minutely_15=precipitation,precipitation_probability'+
       '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max'+
       '&forecast_days=7&past_hours=1';
-    const aUrl='https://air-quality-api.open-meteo.com/v1/air-quality?'+base+'&current=european_aqi,pm2_5';
+    const aUrl='https://air-quality-api.open-meteo.com/v1/air-quality?'+base+
+      '&current=european_aqi,us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,carbon_monoxide';
 
     try{
       const res=await Promise.all([ getJSON(fUrl), getJSON(aUrl).catch(()=>null) ]);
       const f=res[0], a=res[1];
-      const c=f.current, h=f.hourly, d=f.daily;
+      const c=f.current, h=f.hourly, d=f.daily, mn=f.minutely_15;
       const place=(city.name||'')+(city.admin && city.admin!==city.name? ', '+city.admin:'');
       let start=h.time.findIndex(t=>t.slice(0,13)===c.time.slice(0,13));
       if(start<0) start=0;
@@ -676,27 +912,53 @@
       }
       const daily=(d.time||[]).map((t,i)=>({time:t,code:d.weather_code[i],min:d.temperature_2m_min[i],max:d.temperature_2m_max[i],pop:d.precipitation_probability_max[i]}));
 
+      let nowcast=[];
+      if(mn && mn.time){
+        let mi=mn.time.findIndex(t=> t.slice(0,16) >= c.time.slice(0,16));
+        if(mi<0) mi=0;
+        nowcast=mn.time.slice(mi,mi+8).map((t,i)=>({time:t, mm:mn.precipitation[mi+i]||0, pop:mn.precipitation_probability[mi+i]||0}));
+      }
+
       state.weather={
         place:place, temp:c.temperature_2m, feels:c.apparent_temperature, humidity:c.relative_humidity_2m,
         code:c.weather_code, is_day:c.is_day, wind:c.wind_speed_10m, winddir:c.wind_direction_10m,
+        pressure:c.pressure_msl, cloud:c.cloud_cover,
         sunrise:d.sunrise&&d.sunrise[0], sunset:d.sunset&&d.sunset[0], uv:d.uv_index_max&&d.uv_index_max[0],
-        hourly:hourly, daily:daily
+        hourly:hourly, daily:daily, nowcast:nowcast
       };
-      state.aqi = (a && a.current) ? {aqi:a.current.european_aqi, pm:a.current.pm2_5} : {aqi:null,pm:null};
+      state.aqi = (a && a.current) ? {
+        aqi:a.current.european_aqi, us:a.current.us_aqi, pm:a.current.pm2_5, pm25:a.current.pm2_5, pm10:a.current.pm10,
+        no2:a.current.nitrogen_dioxide, o3:a.current.ozone, so2:a.current.sulphur_dioxide, co:a.current.carbon_monoxide
+      } : {aqi:null,pm:null};
       state.city=Object.assign({},city,{tz:f.timezone||city.tz||'auto'});
       store.set(LS.city, state.city);
+      addRecent(state.city);
+      syncURL(state.city);
+      saveCache();
       tick();
       renderAll();
+      if(radar.isOpen()) radar.setView(state.city);
       if(opts.silent!==true) showToast('Cuaca '+city.name+' diperbarui');
     }catch(err){
       console.error(err);
-      els.wDesc.textContent='gagal memuat';
-      showToast('Gagal memuat data cuaca');
+      const c=loadCache();
+      if(c){
+        state.city=c.city; state.weather=c.weather; state.aqi=c.aqi;
+        tick(); renderAll(); renderChips();
+        els.wDesc.textContent='data tersimpan';
+        showToast('Offline — memakai data terakhir ('+new Date(c.savedAt).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})+')');
+      }else{
+        els.wDesc.textContent='gagal memuat';
+        showToast('Gagal memuat data cuaca');
+      }
     }finally{
       state.loading=false;
       els.btnRefresh.classList.remove('spin-ic');
     }
   }
+
+  function saveCache(){ try{ store.set(LS.cache,{city:state.city,weather:state.weather,aqi:state.aqi,savedAt:Date.now()}); }catch(e){} }
+  function loadCache(){ const c=store.get(LS.cache,null); return (c&&c.weather)? c : null; }
 
   /* ---------------- Search ---------------- */
   let searchTimer=null;
@@ -713,8 +975,7 @@
         b.innerHTML='<span class="c">'+r.name+'</span><span class="a">'+[r.admin1,r.country].filter(Boolean).join(' · ')+'</span>';
         b.addEventListener('click',()=>{
           els.results.classList.remove('open'); els.q.value='';
-          loadWeather({name:r.name,country:r.country,admin:r.admin1,lat:r.latitude,lon:r.longitude,tz:r.timezone});
-          els.content.scrollTo({top:0,behavior:'smooth'});
+          selectCity({name:r.name,country:r.country,admin:r.admin1,lat:r.latitude,lon:r.longitude,tz:r.timezone});
         });
         els.results.appendChild(b);
       });
@@ -723,6 +984,11 @@
   }
   els.q.addEventListener('input',()=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>doSearch(els.q.value),260); });
   document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchwrap')) els.results.classList.remove('open'); });
+
+  function selectCity(c){
+    loadWeather(c);
+    els.content.scrollTo({top:0,behavior:'smooth'});
+  }
 
   els.geo.addEventListener('click',()=>{
     if(!navigator.geolocation){ showToast('Perangkat tidak mendukung lokasi'); return; }
@@ -734,19 +1000,157 @@
         const j=await getJSON('https://geocoding-api.open-meteo.com/v1/search?latitude='+lat+'&longitude='+lon+'&count=1&language=id');
         if(j.results&&j.results[0]){ name=j.results[0].name; admin=j.results[0].admin1; country=j.results[0].country; }
       }catch(e){}
-      loadWeather({name:name,admin:admin,country:country,lat:lat,lon:lon,tz:'auto'});
+      selectCity({name:name,admin:admin,country:country,lat:lat,lon:lon,tz:'auto'});
     },()=>{ showToast('Izin lokasi ditolak'); },{timeout:8000});
   });
 
-  /* ---------------- Controls ---------------- */
-  els.btnRefresh.addEventListener('click',()=>loadWeather(state.city));
-  els.btnShare.addEventListener('click',async()=>{
-    const url=location.href;
+  /* ---------------- Favorites & recents ---------------- */
+  const cityKey = (c)=> c.lat.toFixed(2)+','+c.lon.toFixed(2);
+  const isFav = (c)=> state.favs.some(f=>cityKey(f)===cityKey(c));
+  function renderFav(){
+    const on=isFav(state.city);
+    els.favBtn.textContent=on?'★':'☆';
+    els.favBtn.classList.toggle('on',on);
+    els.favBtn.setAttribute('aria-pressed',on?'true':'false');
+    els.favBtn.title=on?'Hapus dari favorit':'Simpan ke favorit';
+  }
+  els.favBtn.addEventListener('click',()=>{
+    const c=state.city;
+    if(isFav(c)){ state.favs=state.favs.filter(f=>cityKey(f)!==cityKey(c)); showToast('Dihapus dari favorit'); }
+    else { state.favs.unshift(c); state.favs=state.favs.slice(0,8); showToast('Disimpan ke favorit'); }
+    store.set(LS.favs,state.favs); renderFav(); renderChips();
+  });
+  function addRecent(c){
+    state.recents=state.recents.filter(r=>cityKey(r)!==cityKey(c));
+    state.recents.unshift(c); state.recents=state.recents.slice(0,6);
+    store.set(LS.recents,state.recents); renderChips();
+  }
+  function renderChips(){
+    els.chips.innerHTML='';
+    const favs=state.favs;
+    const recs=state.recents.filter(r=>!favs.some(f=>cityKey(f)===cityKey(r)));
+    const all=[].concat(favs.map(c=>({c,fav:true})), recs.map(c=>({c,fav:false}))).slice(0,10);
+    if(!all.length) return;
+    all.forEach(({c,fav})=>{
+      const b=document.createElement('button');
+      b.className='chip';
+      b.innerHTML=(fav?'★ ':'🕘 ')+c.name+' <span class="x" title="Hapus" role="button">✕</span>';
+      b.addEventListener('click',(e)=>{
+        if(e.target.classList.contains('x')){
+          if(fav) state.favs=state.favs.filter(f=>cityKey(f)!==cityKey(c));
+          else state.recents=state.recents.filter(r=>cityKey(r)!==cityKey(c));
+          store.set(LS.favs,state.favs); store.set(LS.recents,state.recents);
+          renderChips(); renderFav(); e.stopPropagation(); return;
+        }
+        selectCity(c);
+      });
+      els.chips.appendChild(b);
+    });
+  }
+
+  /* ---------------- Share / deep link ---------------- */
+  function syncURL(c){ try{ const u=new URL(location.href); u.searchParams.set('lat',c.lat.toFixed(4)); u.searchParams.set('lon',c.lon.toFixed(4)); u.searchParams.set('name',c.name); history.replaceState(null,'',u); }catch(e){} }
+  function fromURL(){
     try{
-      if(navigator.share){ await navigator.share({title:document.title,url:url}); return; }
+      const u=new URL(location.href);
+      const lat=parseFloat(u.searchParams.get('lat')), lon=parseFloat(u.searchParams.get('lon'));
+      if(isFinite(lat)&&isFinite(lon)) return {name:u.searchParams.get('name')||'Lokasi', admin:'', country:'', lat:lat, lon:lon, tz:'auto'};
+    }catch(e){}
+    return null;
+  }
+  els.btnShare.addEventListener('click',async()=>{
+    const url=location.href, title=document.title;
+    try{
+      if(navigator.share){ await navigator.share({title:title,text:'Cuaca '+(state.city.name||'')+' — Alam Semesta',url:url}); return; }
       await navigator.clipboard.writeText(url); showToast('Tautan disalin');
     }catch(e){ showToast(url); }
   });
+
+  els.btnRefresh.addEventListener('click',()=>loadWeather(state.city));
+
+  /* ---------------- Radar map ---------------- */
+  const radar=(function(){
+    let map=null, marker=null, baseLayer=null, radarLayer=null, host='', frames=[], idx=0, playing=false, timer=null;
+    function ensure(){
+      if(map) return true;
+      if(typeof L==='undefined'){ showToast('Peta tidak dapat dimuat (offline?)'); return false; }
+      map=L.map(els.map,{zoomControl:false,attributionControl:true}).setView([state.city.lat,state.city.lon],6);
+      marker=L.marker([state.city.lat,state.city.lon],{icon:L.divIcon({className:'',html:'<div class="maploc"></div>',iconSize:[12,12],iconAnchor:[6,6]})}).addTo(map);
+      applyBase();
+      return true;
+    }
+    function applyBase(){
+      if(!map) return;
+      if(baseLayer) map.removeLayer(baseLayer);
+      const dark=document.documentElement.getAttribute('data-theme')==='dark';
+      const url= dark? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                     : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+      baseLayer=L.tileLayer(url,{subdomains:'abcd',maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+    }
+    function setView(c,zoom){ if(!map) return; map.setView([c.lat,c.lon],zoom||6); if(marker) marker.setLatLng([c.lat,c.lon]); }
+    async function loadFrames(){
+      try{
+        const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');
+        host=j.host; frames=(j.radar&&j.radar.past)||[];
+        if(!frames.length) throw new Error('no frames');
+        idx=frames.length-1;
+        els.tlRange.max=frames.length-1; els.tlRange.value=idx;
+        els.tlMode.textContent=frames.length+' bingkai';
+        showFrame(idx);
+      }catch(e){ els.tlLabel.textContent='Radar tidak tersedia'; els.tlMode.textContent=''; }
+    }
+    function showFrame(i){
+      if(!map||!frames.length) return;
+      idx=Math.max(0,Math.min(frames.length-1,i));
+      const f=frames[idx];
+      if(radarLayer) map.removeLayer(radarLayer);
+      radarLayer=L.tileLayer(host+f.path+'/256/{z}/{x}/{y}/2/1_1.png',{opacity:.85,tileSize:256,noWrap:true}).addTo(map);
+      els.tlRange.value=idx;
+      const newest=frames[frames.length-1].time;
+      const mins=Math.round((f.time-newest)/60);
+      els.tlLabel.innerHTML = mins>=0? '<span class="now">Sekarang</span>' : (mins+' menit lalu');
+    }
+    function play(){ playing=true; els.mapPlay.textContent='❚❚'; timer=setInterval(()=>{ showFrame(idx+1>=frames.length?0:idx+1); },600); }
+    function stop(){ playing=false; els.mapPlay.textContent='▶'; clearInterval(timer); }
+    function open(){
+      if(!ensure()) return;
+      els.mapview.classList.add('open'); els.controls.hidden=true;
+      els.tabRadar.classList.add('on'); els.tabWeather.classList.remove('on');
+      els.tabRadar.setAttribute('aria-selected','true'); els.tabWeather.setAttribute('aria-selected','false');
+      setView(state.city,6);
+      setTimeout(()=>{ map.invalidateSize(); if(!frames.length) loadFrames(); },80);
+    }
+    function close(){
+      stop(); els.mapview.classList.remove('open'); els.controls.hidden=false;
+      els.tabWeather.classList.add('on'); els.tabRadar.classList.remove('on');
+      els.tabWeather.setAttribute('aria-selected','true'); els.tabRadar.setAttribute('aria-selected','false');
+    }
+    function refresh(){ if(map){ applyBase(); loadFrames(); } }
+    els.mapPlay.addEventListener('click',()=>{ if(!frames.length){ loadFrames(); return; } playing? stop() : play(); });
+    els.tlRange.addEventListener('input',()=>{ stop(); showFrame(parseInt(els.tlRange.value,10)||0); });
+    els.mapClose.addEventListener('click',close);
+    els.mapRecenter.addEventListener('click',()=>{ setView(state.city,6); });
+    els.tabRadar.addEventListener('click',open);
+    els.tabWeather.addEventListener('click',close);
+    return { open, close, refresh, setView, isOpen:()=>els.mapview.classList.contains('open') };
+  })();
+
+  /* ---------------- PWA install ---------------- */
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e; els.btnInstall.hidden=false; });
+  els.btnInstall.addEventListener('click',async()=>{
+    if(!deferredPrompt){ showToast('Gunakan menu browser → “Tambahkan ke layar utama”'); return; }
+    deferredPrompt.prompt();
+    const r=await deferredPrompt.userChoice;
+    if(r&&r.outcome==='accepted') showToast('Aplikasi dipasang 🎉');
+    deferredPrompt=null; els.btnInstall.hidden=true;
+  });
+  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{})); }
+
+  /* ---------------- Offline indicator ---------------- */
+  function netStatus(){ els.offline.classList.toggle('show', !navigator.onLine); }
+  window.addEventListener('online',()=>{ netStatus(); loadWeather(state.city,{silent:true}); });
+  window.addEventListener('offline',netStatus);
 
   /* ---------------- Resize ---------------- */
   let rTimer=null;
@@ -756,11 +1160,16 @@
 
   /* ---------------- Boot ---------------- */
   initTheme();
+  setUnit(state.unit);
+  netStatus();
+  renderChips();
   fx.resize();
   fx.set(state.fx);
   tick(); setInterval(tick,1000);
-  loadWeather(state.city,{silent:true});
+  const initial = fromURL() || state.city;
+  loadWeather(initial,{silent:true});
   setInterval(()=>loadWeather(state.city,{silent:true}),15*60*1000);
+  try{ if(new URL(location.href).searchParams.get('tab')==='radar') setTimeout(()=>radar.open(),400); }catch(e){}
 })();
 </script>
 </body>
