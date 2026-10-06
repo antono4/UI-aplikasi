@@ -1,64 +1,47 @@
-<!-- README ini dihasilkan otomatis oleh workflow .github/workflows/generate-readme.yml -->
-<!-- Jangan edit manual; perubahan akan ditim pada run berikutnya. -->
+# UI Aplikasi 🎨
 
-<h1 align="center">Alam Semesta · Live Weather &amp; Ambience 👋</h1>
+Beautiful and modern UI components and application designs.
 
-<p align="center">
-  <strong>Alam Semesta · Live Weather &amp; Ambience</strong>
-</p>
+## ✨ Features
 
-<p align="center">
-  <a href="https://github.com/antono4/UI-aplikasi"><img alt="GitHub repo" src="https://img.shields.io/badge/GitHub-antono4/UI-aplikasi-blue?logo=github"></a>
-  <a href="https://antono4.github.io/UI-aplikasi/"><img alt="Live Demo" src="https://img.shields.io/badge/Live%20Demo-Online-success?logo=githubpages"></a>
-  <img alt="Files" src="https://img.shields.io/badge/Files-9-informational">
-  <img alt="Updated" src="https://img.shields.io/badge/Updated-2026-10-06 09:31:27 WIB-lightgrey">
-</p>
+- 🎨 Modern UI components
+- 📱 Mobile-first design
+- 🌙 Dark mode support
+- ♿ Accessibility friendly
+- 🔧 Customizable themes
 
----
+## 🛠️ Tech Stack
 
-## 📖 Tentang
+- HTML5
+- CSS3
+- JavaScript
 
-Repository **`UI-aplikasi`** adalah situs web pribadi / portofolio yang diterbitkan melalui **GitHub Pages**. Situs utama berada di [`https://antono4.github.io/UI-aplikasi/`](https://antono4.github.io/UI-aplikasi/).
+## 🚀 Quick Start
 
-## 🗂️ Struktur Proyek
+```bash
+# Clone the repository
+git clone https://github.com/antono4/UI-aplikasi.git
+
+# Open in browser
+cd UI-aplikasi
+open index.html
+```
+
+## 📁 Project Structure
 
 ```
 UI-aplikasi/
-├── index.html          # Halaman utama (landing / portofolio)
-├── assets/             # Aset statis (css, js, img, vendor)
-├── forms/               # Form handler (PHP)
+├── index.html      # Main page
+├── css/            # Stylesheets
+├── js/             # JavaScript files
+└── assets/         # Static assets
 ```
 
-## 🛠️ Teknologi
+## 👤 Author
 
-Berdasarkan isi repository, proyek ini menggunakan:
+**Antono4**
+- GitHub: [@antono4](https://github.com/antono4)
 
-- `HTML`
+## 📄 License
 
-> Total **9 file** terdeteksi di repository.
-
-## 🚀 Menjalankan Secara Lokal
-
-Karena ini situs statis (HTML/CSS/JS/PHP), cukup buka `index.html` di browser, atau jalankan server lokal:
-
-```bash
-# Tanpa dependency
-python3 -m http.server 8000
-# lalu buka http://localhost:8000
-
-# atau dengan PHP (untuk form handler di forms/)
-php -S localhost:8000
-```
-
-## 📬 Kontak
-
-- GitHub: [antono4](https://github.com/antono4)
-- Situs: [https://antono4.github.io/UI-aplikasi/](https://antono4.github.io/UI-aplikasi/)
-
-## 📄 Lisensi
-
-Lihat berkas [`LICENSE`](./LICENSE) untuk informasi lisensi.
-
----
-
-<sub>README ini di-generate otomatis pada **2026-10-06 09:31:27 WIB** oleh GitHub Actions `.github/workflows/generate-readme.yml`.</sub>
+This project is open source and available under the [MIT License](LICENSE).
