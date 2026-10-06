@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Alam Semesta">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="0.55" stop-color="#ff5fa2"/>
+      <stop offset="1" stop-color="#41d8ff"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbe4ff"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="150" cy="150" r="120" fill="#ffffff" opacity="0.10" filter="url(#soft)"/>
+  <circle cx="372" cy="392" r="130" fill="#0b0d1c" opacity="0.16" filter="url(#soft)"/>
+  <path d="M356 118a86 86 0 1 0 0 156 104 104 0 0 1 0-156Z" fill="url(#moon)"/>
+  <path d="M188 356c-30 0-52-22-52-49 0-28 23-50 52-50 6 0 12 1 17 3 9-30 37-51 70-51 40 0 72 31 74 70 22 5 38 24 38 47 0 27-23 49-52 49H188Z" fill="#ffffff"/>
+  <circle cx="392" cy="150" r="7" fill="#ffffff"/>
+  <circle cx="424" cy="196" r="4.5" fill="#ffffff" opacity="0.85"/>
+  <circle cx="356" cy="82" r="5" fill="#ffffff" opacity="0.9"/>
+</svg>
