@@ -278,9 +278,10 @@
   .mapview input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-8px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.45)}
   .mapview input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:var(--stroke)}
   .mapview input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.45)}
-  .mapview .legend{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--txt-dim);font-weight:600}
+  .mapview .legend{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--txt-dim);font-weight:600;flex-wrap:wrap}
   .mapview .legend .scale{flex:1;height:7px;border-radius:6px;background:linear-gradient(90deg,#41d8ff,#4ade80,#fbbf24,#fb7185,#e879f9)}
   .mapview .legend .zmax{color:var(--txt-faint);white-space:nowrap}
+  .mapview .legend .free{color:var(--accent);white-space:nowrap;opacity:.9}
   .mapview .leaflet-control-attribution{font-size:9px;background:rgba(0,0,0,.45);color:#cbd5e1}
   .mapview .leaflet-control-attribution a{color:#cbd5e1}
   .mapview .maploc{width:12px;height:12px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(255,95,162,.35),0 0 16px var(--accent-2)}
@@ -430,6 +431,7 @@
         <div class="topbar">
           <span class="t">🛰️ Radar Hujan <small id="map-city">—</small></span>
           <span class="acts">
+            <button class="icobtn" id="map-retry" title="Muat ulang data radar" aria-label="Muat ulang data radar">⟳</button>
             <button class="icobtn" id="map-recenter" title="Pusatkan ke kota" aria-label="Pusatkan ke kota">🎯</button>
             <button class="icobtn" id="map-close" title="Tutup peta" aria-label="Tutup peta">✕</button>
           </span>
@@ -442,7 +444,7 @@
               <input id="tl-range" type="range" min="0" max="0" value="0" step="1" aria-label="Garis waktu radar">
             </div>
           </div>
-          <div class="legend"><span>Ringan</span><span class="scale"></span><span>Lebat</span><span class="zmax" title="Batas zoom penyedia data radar">maks zoom 7</span></div>
+          <div class="legend"><span>Ringan</span><span class="scale"></span><span>Lebat</span><span class="zmax" title="Batas zoom penyedia data radar">maks zoom 7</span><span class="free" title="RainViewer & Open-Meteo tidak memerlukan API key">tanpa API key</span></div>
         </div>
       </section>
 
@@ -484,7 +486,7 @@
     btnRefresh:$('#btn-refresh'), refreshIc:$('#refresh-ic'), btnShare:$('#btn-share'), btnInstall:$('#btn-install'),
     unitC:$('#unit-c'), unitF:$('#unit-f'),
     tabWeather:$('#tab-weather'), tabRadar:$('#tab-radar'), controls:$('#controls'),
-    mapview:$('#mapview'), map:$('#map'), mapCity:$('#map-city'), mapClose:$('#map-close'), mapRecenter:$('#map-recenter'),
+    mapview:$('#mapview'), map:$('#map'), mapCity:$('#map-city'), mapClose:$('#map-close'), mapRecenter:$('#map-recenter'), mapRetry:$('#map-retry'),
     mapPlay:$('#map-play'), tlRange:$('#tl-range'), tlLabel:$('#tl-label'), tlMode:$('#tl-mode'), tlClock:$('#tl-clock'),
     offline:$('#offline')
   };
@@ -1118,7 +1120,17 @@
       const url= dark? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                      : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
       baseLayer=L.tileLayer(url,{subdomains:'abcd',maxZoom:MAXZ,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+      baseLayer.on('tileerror',()=>onTileError());
       if(radarLayer) radarLayer.setZIndex(10);
+    }
+    // Bila tile gagal dimuat, coba sekali lagi; kalau tetap gagal beri tahu pengguna
+    // agar tidak terlihat seperti aplikasi rusak (mis. saat koneksi terputus).
+    let tileRetried=false;
+    function onTileError(){
+      if(tileRetried) return;
+      tileRetried=true;
+      setTimeout(()=>{ tileRetried=false; }, 8000);
+      showToast('Sebagian peta gagal dimuat — mencoba lagi…');
     }
     function setView(c,zoom){ if(!map) return; map.setView([c.lat,c.lon],zoom||HOMEZ); if(marker) marker.setLatLng([c.lat,c.lon]); }
     async function loadFrames(){
@@ -1145,6 +1157,7 @@
       const f=frames[idx];
       if(radarLayer) map.removeLayer(radarLayer);
       radarLayer=L.tileLayer(host+f.path+'/256/{z}/{x}/{y}/2/1_1.png',{opacity:.85,tileSize:256,noWrap:true,maxNativeZoom:MAXZ,maxZoom:MAXZ,zIndex:10}).addTo(map);
+      radarLayer.on('tileerror',()=>onTileError());
       els.tlRange.value=idx;
       const newest=frames[frames.length-1].time;
       const mins=Math.round((f.time-newest)/60);
@@ -1184,6 +1197,11 @@
     els.tlRange.addEventListener('input',()=>{ stop(); showFrame(parseInt(els.tlRange.value,10)||0); });
     els.mapClose.addEventListener('click',close);
     els.mapRecenter.addEventListener('click',()=>{ setView(state.city,HOMEZ); });
+    els.mapRetry.addEventListener('click',()=>{
+      if(!map) return;
+      els.mapRetry.disabled=true;
+      loadFrames().then(()=>{ els.mapRetry.disabled=false; showToast(frames.length?'Radar diperbarui':'Radar belum tersedia'); });
+    });
     els.tabRadar.addEventListener('click',open);
     els.tabWeather.addEventListener('click',close);
     return { open, close, refresh, setView, isOpen:()=>els.mapview.classList.contains('open') };

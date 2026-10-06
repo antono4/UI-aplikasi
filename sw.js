@@ -1,5 +1,5 @@
 /* Service worker: app-shell cache + network-first untuk API cuaca. */
-const CACHE = 'alam-semesta-v4';
+const CACHE = 'alam-semesta-v5';
 const SHELL = [
   './',
   './index.html',
