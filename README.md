@@ -1,1 +1,26 @@
-Last updated: 2026-10-17 13:34:34 WIB
+# UI-aplikasi
+
+
+
+## 📋 Overview
+
+This repository contains **16 files** and is built with the following technologies:
+
+HTML, JavaScript
+
+## 🚀 Quick Start
+
+## ✨ Features
+
+- 📝 Auto-generated documentation
+
+## 🛠️ Technologies
+
+HTML, JavaScript
+
+## 📄 License
+
+MIT License
+
+---
+*Last updated: 2026-10-17 14:05:15 WIB*
